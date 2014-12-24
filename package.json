@@ -1,11 +1,17 @@
 {
-  "name": "npm-scripts-example",
+  "name": "npm-site-generator",
   "version": "1.0.0",
-  "description": "An example of how to use npm scripts over a build tool like Grunt or Gulp",
+  "description": "static site generator with NPM",
   "main": "index.js",
   "author": "Keith Cirkel <npm@keithcirkel.co.uk> (http://keithcirkel.co.uk/)",
+  "contributors": [{
+    "name": "Patrick Heneise",
+    "email": "patrick@blended.io",
+    "url": "http://blended.io"
+  }],
   "license": "MIT",
   "devDependencies": {
+    "async": "^0.9.0",
     "browserify": "^6.3.2",
     "hashmark": "^2.0.0",
     "http-server": "^0.7.3",
@@ -24,19 +30,21 @@
     "parallelshell": "^1.0.0",
     "rimraf": "^2.2.8",
     "s3-cli": "^0.11.1",
-    "stylus": "^0.49.3"
+    "hogan": "^1.0.2"
   },
   "scripts": {
     "clean": "rimraf dist/*",
 
     "prebuild": "npm run clean -s",
-    "build": "npm run build:scripts -s && npm run build:styles -s && npm run build:markup -s",
-    "build:scripts": "browserify -d assets/scripts/main.js -p [minifyify --compressPath . --map main.js.map --output dist/main.js.map] | hashmark -n dist/main.js -s -l 8 -m assets.json 'dist/{name}{hash}{ext}'",
-    "build:styles": "stylus assets/styles/main.styl -m -o dist/ && hashmark -s -l 8 -m assets.json dist/main.css 'dist/{name}{hash}{ext}'",
-    "build:markup": "jade assets/markup/index.jade --obj assets.json -o dist",
+    "build": "npm run build:scripts -s && npm run copy:assets -s && npm run copy:fonts -s && npm run build:styles -s && npm run build:markup",
+
+    "build:scripts": "browserify -d assets/scripts/main.js -p [minifyify --compressPath . --map main.js.map --output dist/main.js.map] | hashmark -n mainjs -s -l 8 -m assets.json 'dist/{name}-{hash}.js'",
+    "build:styles": "lessc assets/styles/main.less | hashmark -n maincss -s -l 8 -m assets.json 'dist/{name}-{hash}.css'",
+    "build:markup": "node hogan-render.js",
+    "copy:assets": "cp -R assets/scripts/assets dist/",
+    "copy:fonts": "cp -R assets/fonts dist/",
 
     "test": "karma start --singleRun",
-
     "watch": "parallelshell 'npm run watch:test -s' 'npm run watch:build -s'",
     "watch:test": "karma start",
     "watch:build": "nodemon -q -w assets/ --ext '.' --exec 'npm run build'",
@@ -47,10 +55,8 @@
 
     "deploy:prod": "s3-cli sync ./dist/ s3://example-com/prod-site/",
     "deploy:stage": "s3-cli sync ./dist/ s3://example-com/stage-site/",
-
     "serve": "http-server -p 9090 dist/",
     "live-reload": "live-reload --port 9091 dist/",
-
     "dev": "npm run open:dev -s & parallelshell 'npm run live-reload -s' 'npm run serve -s' 'npm run watch -s'"
   }
 }
