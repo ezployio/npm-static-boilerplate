@@ -4,7 +4,7 @@ Firstly, you should go and read [how to use NPM as a build tool][post] by Keith 
 
 After that, install the requirements:
 
-    (sudo) npm install -g browserify hashmark less karma parallelshell
+    npm install
 
 We've included some [Google Material](http://fezvrasta.github.io/bootstrap-material-design/bootstrap-elements.html) and Twitter Bootstrap theme, just to show how things work.
 
